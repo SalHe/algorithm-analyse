@@ -35,11 +35,18 @@ function handleStockJson(json) {
     const prices = [];
     const dates = [];
 
-    // TODO 仅保留近三个月的
-    stocks.forEach(s => {
-        prices.push(parseFloat(s[ID_PRICE]));
-        dates.push(s[ID_DATE]);
-    });
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    stocks
+        .filter(x => {
+            const date = new Date(x[ID_DATE]);
+            date.setMonth(date.getMonth() + 3);
+            return date > now;
+        }).forEach(s => {
+            prices.push(parseFloat(s[ID_PRICE]));
+            dates.push(s[ID_DATE]);
+        });
 
     const how = howToBuy(prices);
 
