@@ -10,8 +10,6 @@ using Ints = vector<int>;
 using Combinations = vector<Ints>;
 using Result = tuple<int, Combinations>;
 
-#define NOT_FOUND 0
-
 void findSumCombination(Ints &nums, int sum, Ints &curr, int numsPos, Combinations &combinations, int &max)
 {
     int currSum = 0;
@@ -71,7 +69,7 @@ TEST_CASE("求和")
 
         (Result){
             /* 序列中数字个数 */ 3,
-            /*可能的结果集，遵循字典序*/
+            /* 可能的结果集，遵循字典序 */
             {
                 {1, 2, 3},
             },
@@ -81,7 +79,7 @@ TEST_CASE("求和")
 
         (Result){
             /* 序列中数字个数 */ 3,
-            /*可能的结果集，遵循字典序*/
+            /* 可能的结果集，遵循字典序 */
             {
                 {1, 2, 3},
             },
@@ -91,7 +89,7 @@ TEST_CASE("求和")
 
         (Result){
             /* 序列中数字个数 */ 3,
-            /*可能的结果集，遵循字典序*/
+            /* 可能的结果集，遵循字典序 */
             {
                 {1, 2, 3},
                 {1, 2, 3},
@@ -102,7 +100,7 @@ TEST_CASE("求和")
 
         (Result){
             /* 序列中数字个数 */ 4,
-            /*可能的结果集，遵循字典序*/
+            /* 可能的结果集，遵循字典序 */
             {
                 {1, 1, 1, 3},
             },
