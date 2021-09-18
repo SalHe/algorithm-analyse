@@ -53,7 +53,7 @@ void findSumCombination(Ints &nums, int sum, Ints &curr, int numsPos, Combinatio
 Result findSumCombination(Ints nums, int sum)
 {
     // 首先对给定的元素排序，
-    // 具体排序算法暂不考
+    // 具体排序算法暂不考虑
     sort(nums.begin(), nums.end());
 
     Ints curr;
