@@ -42,7 +42,7 @@ function handleStockJson(json) {
         .filter(x => {
             const date = new Date(x[ID_DATE]);
             date.setMonth(date.getMonth() + 3);
-            return date > now;
+            return date >= now;
         }).forEach(s => {
             prices.push(parseFloat(s[ID_PRICE]));
             dates.push(s[ID_DATE]);
