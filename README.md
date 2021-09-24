@@ -17,6 +17,12 @@
 
 - Node.js v10.19.0 (主要用于爬虫编写等，并不会将JavaScript作为算法实现的语言)
 
+## 注意事项
+
+- 公式不正常？
+  
+  在本项目部分`Markdown`文件中会使用$\LaTeX$公式，在Chrome或Edge浏览器中可能无法直接正常显示，可在浏览器中安装[MathJax Plugin for Github](https://chrome.google.com/webstore/detail/mathjax-plugin-for-github/ioemnmodlmafdkllaclgeombjnmnbima)插件以正常浏览。
+
 ## 引用开源项目
 
 - [doctest](https://github.com/onqtam/doctest)
