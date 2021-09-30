@@ -120,7 +120,7 @@ TEST_CASE("寻找出现次数超过一半的数")
     std::vector<TestCase> testCases = {
         {{3, 1, 1, 2, 1, 2, 1, 1}, FOUND(1)},
         {{3, 1, 1, 2, 3, 2}, NOT_FOUND},
-        {{0, 2, 0, 0, 1, 0, 1, 0, 1, 1, 0, 3, 0}, FOUND(1)},
+        {{0, 2, 0, 0, 1, 0, 1, 0, 1, 1, 0, 3, 0}, FOUND(0)},
     };
 
     for (auto &&testCase : testCases)
