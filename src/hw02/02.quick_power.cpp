@@ -22,7 +22,7 @@ double quickPowerNormal(double number, int n)
 double quickPower(double number, int n)
 {
     int absN = n > 0 ? n : -n;
-    
+
     // 处理特殊情况
     if (number == 0)
         return 0;
@@ -40,17 +40,21 @@ double quickPower(double number, int n)
 
 TEST_CASE("分治求幂")
 {
-    // 测试特殊情况
-    CHECK_EQ(quickPower(0, 15), 0);
-    CHECK_EQ(quickPower(1, 15), 1);
-    CHECK_EQ(quickPower(-1, 16), 1);
-    CHECK_EQ(quickPower(-1, 15), -1);
-    CHECK_EQ(quickPower(-1, -15), -1);
+    SUBCASE("特殊情况")
+    {
+        CHECK_EQ(quickPower(0, 15), 0);
+        CHECK_EQ(quickPower(1, 15), 1);
+        CHECK_EQ(quickPower(-1, 16), 1);
+        CHECK_EQ(quickPower(-1, 15), -1);
+        CHECK_EQ(quickPower(-1, -15), -1);
+    }
 
-    // 测试一般情况
-    CHECK_EQ(quickPower(2, 0), 1);
-    CHECK_EQ(quickPower(2, 6), 64);
-    CHECK_EQ(quickPower(2, 7), 128);
-    CHECK_EQ(quickPower(2, 8), 256);
-    CHECK_EQ(quickPower(2, -8), 1.0 / 256.0);
+    SUBCASE("一般情况")
+    {
+        CHECK_EQ(quickPower(2, 0), 1);
+        CHECK_EQ(quickPower(2, 6), 64);
+        CHECK_EQ(quickPower(2, 7), 128);
+        CHECK_EQ(quickPower(2, 8), 256);
+        CHECK_EQ(quickPower(2, -8), 1.0 / 256.0);
+    }
 }
