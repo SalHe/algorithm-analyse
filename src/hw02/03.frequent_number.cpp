@@ -66,7 +66,7 @@ Result findFrequentNumber(Numbers numbers)
  * @param numbers 
  * @return Result 
  */
-Result findFrequentNumber2(std::vector<int> numbers)
+Result findFrequentNumber2(Numbers numbers)
 {
     std::vector<int> bits(32, 0);
     int res = 0;
@@ -114,7 +114,7 @@ TEST_CASE("寻找出现次数超过一半的数")
 {
     typedef struct
     {
-        std::vector<int> numbers;
+        Numbers numbers;
         Result expect;
     } TestCase;
     std::vector<TestCase> testCases = {
