@@ -12,7 +12,7 @@ using Result = tuple<int, int>;
 
 Result binarySearch(vector<int> numbers)
 {
-    int left = 0, right = numbers.size();
+    int left = 0, right = numbers.size() - 1;
     int mid = 0;
     while (left <= right)
     {
