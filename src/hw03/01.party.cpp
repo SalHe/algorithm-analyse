@@ -2,11 +2,13 @@
 #include <doctest.h>
 #include <string>
 #include <sstream>
+#include <queue>
 
 using namespace std;
 
 #define NULL_SUB_NODE -1
 #define NOT_NEEDED -2
+#define IS_VALID_ID(x) (x >= 0)
 
 typedef struct PersonNode
 {
@@ -138,10 +140,89 @@ TEST_CASE("括号表达式转换")
     }
 }
 
+#define MAX(x, y) (x > y ? x : y)
+
+int arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
+{
+    typedef struct
+    {
+        int participating;
+        int noParticipating;
+        bool consumed;
+    } PersonScore;
+
+    vector<PersonScore> scores(nodes.size(), PersonScore{0, 0, false});
+    queue<int> candidates;
+    // 选出叶节点
+    for (int i = 0; i < nodes.size(); i++)
+    {
+        if (nodes[i]->child == nullptr)
+        {
+            candidates.push(i);
+        }
+    }
+
+    while (!candidates.empty())
+    {
+        int id = candidates.front();
+        candidates.pop();
+
+        // 计算候选节点的最大评分情况
+        scores[id].participating = nodes[id]->social; // + 间隔一代的子节点的最大评分(直接子节点不参加的最大评分)
+        scores[id].noParticipating = 0;               // + 所有直接子节点参加或不参加的最大评分
+        int child = nodes[id]->childId;
+        while (IS_VALID_ID(child))
+        {
+            scores[id].participating += scores[child].noParticipating;
+            scores[id].noParticipating += MAX(scores[child].noParticipating, scores[child].participating);
+            child = nodes[child]->siblingId;
+        }
+
+        // 标记当前节点已处理
+        scores[id].consumed = true;
+
+        // 加入下一次的候选节点
+        if (candidates.empty())
+        {
+            for (int i = 0; i < nodes.size(); i++)
+            {
+                if (!scores[i].consumed && scores[nodes[i]->childId].consumed)
+                    candidates.push(i);
+            }
+        }
+    }
+
+    return MAX(scores[rootId].participating, scores[rootId].noParticipating);
+}
+
 /**
  * @brief 本次题目核心算法[单位新年聚会人员安排计划]的单元测试。
  * 
  */
 TEST_CASE("单位新年聚会人员安排计划")
 {
+
+    typedef struct
+    {
+        string expression;
+        int expected;
+    } TestCase;
+    vector<TestCase> cases = {
+        {"0#Boss(5#SalHe(6#Tom,4#Jerry),5#Letty(6#What,8#GEM,9#Superman))", 33},
+        {"0#Boss(11#SalHe(6#Tom,4#Jerry),5#Letty(6#What,8#GEM,9#Superman))", 34},
+        {"0#Boss(11#SalHe(6#Tom,4#Jerry(11#SalHe(6#Tom,9#Jerry))),5#Letty(6#What,8#GEM,9#Superman))", 34},
+    };
+
+    for (int i = 0; i < cases.size(); i++)
+    {
+        SUBCASE(cases[i].expression.c_str())
+        {
+            vector<PersonNode *> nodes;
+            int rootId;
+            Personnel *p = Personnel::from(cases[i].expression, &nodes, &rootId);
+
+            int actual = arrangeParty(nodes, rootId);
+            CHECK_EQ(cases[i].expected, actual);
+        }
+    }
 }
