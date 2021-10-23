@@ -6,7 +6,7 @@
 
 using namespace std;
 
-#define NULL_SUB_NODE -1
+#define NULL_NODE -1
 #define NOT_NEEDED -2
 #define IS_VALID_ID(x) (x >= 0)
 
@@ -16,8 +16,10 @@ typedef struct PersonNode
     int social;
     PersonNode *child;   // left
     PersonNode *sibling; // right
-    int childId = NULL_SUB_NODE;
-    int siblingId = NULL_SUB_NODE;
+    PersonNode *parent;
+    int parentId = NULL_NODE;
+    int childId = NULL_NODE;
+    int siblingId = NULL_NODE;
 
     /**
      * @brief 将人员关系括号表达式转换成树结构
@@ -27,12 +29,14 @@ typedef struct PersonNode
      * @param rootId 用于存储当前表达式根节点在[nodes]中的索引。
      * @return PersonNode* 二叉树根节点。
      */
-    static PersonNode *from(string expression, vector<PersonNode *> *nodes = nullptr, int *rootId = nullptr)
+    static PersonNode *from(string expression, vector<PersonNode *> *nodes = nullptr, int *rootId = nullptr,
+                            PersonNode *parent = nullptr, int parentId = NULL_NODE)
     {
-        PersonNode *personnel = new PersonNode{};
+        PersonNode *personnel = new PersonNode{.parent = parent, .parentId = parentId};
+        int id = nodes->size();
         if (rootId && nodes)
         {
-            *rootId = nodes->size();
+            *rootId = id;
             nodes->push_back(personnel);
         }
         else if (rootId && !nodes)
@@ -75,7 +79,7 @@ typedef struct PersonNode
                 else if (ch == ')')
                     leftCount--;
             }
-            personnel->child = from(childrenExpression.str(), nodes, &personnel->childId);
+            personnel->child = from(childrenExpression.str(), nodes, &personnel->childId, personnel, id);
         }
 
         // 处理兄弟节点
@@ -85,7 +89,8 @@ typedef struct PersonNode
         if (ch == ',')
         {
             getline(ss, siblingExpression);
-            personnel->sibling = from(siblingExpression, nodes, &personnel->siblingId);
+            personnel->sibling = from(siblingExpression, nodes, &personnel->siblingId,
+                                      personnel->parent, personnel->parentId);
         }
 
         return personnel;
@@ -138,6 +143,19 @@ TEST_CASE("括号表达式转换")
                 CHECK_EQ(node->sibling, nodes[node->siblingId]);
         }
     }
+
+    SUBCASE("节点父子关系")
+    {
+        for (int i = 0; i < nodes.size(); i++)
+        {
+            auto node = nodes[i];
+            if (node->child)
+            {
+                CHECK_EQ(node, nodes[node->child->parentId]);
+                CHECK_EQ(node, node->child->parent);
+            }
+        }
+    }
 }
 
 #define MAX(x, y) (x > y ? x : y)
@@ -154,10 +172,19 @@ Answer arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
     {
         int participating;
         int noParticipating;
+        int childs;
         bool consumed;
     } PersonScore;
+    vector<PersonScore> scores(nodes.size(), PersonScore{0, 0, 0, false});
+    for (int i = 0; i < nodes.size(); i++)
+    {
+        int pid = nodes[i]->parentId;
+        if (IS_VALID_ID(pid))
+        {
+            scores[pid].childs++;
+        }
+    }
 
-    vector<PersonScore> scores(nodes.size(), PersonScore{0, 0, false});
     queue<int> candidates;
     // 选出叶节点
     for (int i = 0; i < nodes.size(); i++)
@@ -186,13 +213,17 @@ Answer arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
 
         // 标记当前节点已处理
         scores[id].consumed = true;
+        // 通知父节点当前节点已处理
+        int pid = nodes[id]->parentId;
+        if (IS_VALID_ID(pid))
+            scores[pid].childs--;
 
         // 加入下一次的候选节点
         if (candidates.empty())
         {
             for (int i = 0; i < nodes.size(); i++)
             {
-                if (!scores[i].consumed && scores[nodes[i]->childId].consumed)
+                if (!scores[i].consumed && scores[i].childs <= 0) // == 0
                     candidates.push(i);
             }
         }
@@ -209,6 +240,17 @@ Answer arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
         if (scores[id].participating > scores[id].noParticipating)
         {
             ans.participants.push_back(id);
+            int child = nodes[id]->childId;
+            while (IS_VALID_ID(child))
+            {
+                int childOfChild = nodes[child]->childId;
+                while (IS_VALID_ID(childOfChild))
+                {
+                    candidates.push(childOfChild);
+                    childOfChild = nodes[childOfChild]->siblingId;
+                }
+                child = nodes[child]->siblingId;
+            }
         }
         else
         {
@@ -240,7 +282,7 @@ TEST_CASE("单位新年聚会人员安排计划")
         // 参选者ID跟树的生成方式有关：可将树节点按深度优先从0开始编号
         {"0#Boss(5#SalHe(6#Tom,4#Jerry),5#Letty(6#What,8#GEM,9#Superman))", {33, {2, 3, 5, 6, 7}}},
         {"0#Boss(11#SalHe(6#Tom,4#Jerry),5#Letty(6#What,8#GEM,9#Superman))", {34, {1, 5, 6, 7}}},
-        {"0#Boss(11#SalHe(6#Tom,4#Jerry(11#SalHe(6#Tom,9#Jerry))),5#Letty(6#What,8#GEM,9#Superman))", {34, {2, 5, 6, 8, 9, 10}}},
+        {"0#Boss(11#SalHe(6#Tom,4#Jerry(11#SalHe(6#Tom,9#Jerry))),5#Letty(6#What,8#GEM,9#Superman))", {49, {1, 5, 6, 8, 9, 10}}},
     };
 
     for (int i = 0; i < cases.size(); i++)
@@ -252,6 +294,7 @@ TEST_CASE("单位新年聚会人员安排计划")
             Personnel *p = Personnel::from(cases[i].expression, &nodes, &rootId);
 
             Answer actual = arrangeParty(nodes, rootId);
+            sort(actual.participants.begin(), actual.participants.end()); // 排序方便用于CHECK_EQ中对比
             CHECK_EQ(cases[i].expected.social, actual.social);
             CHECK_EQ(cases[i].expected.participants, actual.participants);
         }
