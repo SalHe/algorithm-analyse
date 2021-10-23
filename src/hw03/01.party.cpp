@@ -142,7 +142,13 @@ TEST_CASE("括号表达式转换")
 
 #define MAX(x, y) (x > y ? x : y)
 
-int arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
+typedef struct
+{
+    int social;
+    vector<int> participants;
+} Answer;
+
+Answer arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
 {
     typedef struct
     {
@@ -192,7 +198,30 @@ int arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
         }
     }
 
-    return MAX(scores[rootId].participating, scores[rootId].noParticipating);
+    Answer ans = {MAX(scores[rootId].participating, scores[rootId].noParticipating)};
+    // candidates.empty() == true
+    candidates.push(rootId);
+    while (!candidates.empty())
+    {
+        int id = candidates.front();
+        candidates.pop();
+
+        if (scores[id].participating > scores[id].noParticipating)
+        {
+            ans.participants.push_back(id);
+        }
+        else
+        {
+            int child = nodes[id]->childId;
+            while (IS_VALID_ID(child))
+            {
+                candidates.push(child);
+                child = nodes[child]->siblingId;
+            }
+        }
+    }
+
+    return ans;
 }
 
 /**
@@ -205,12 +234,13 @@ TEST_CASE("单位新年聚会人员安排计划")
     typedef struct
     {
         string expression;
-        int expected;
+        Answer expected;
     } TestCase;
     vector<TestCase> cases = {
-        {"0#Boss(5#SalHe(6#Tom,4#Jerry),5#Letty(6#What,8#GEM,9#Superman))", 33},
-        {"0#Boss(11#SalHe(6#Tom,4#Jerry),5#Letty(6#What,8#GEM,9#Superman))", 34},
-        {"0#Boss(11#SalHe(6#Tom,4#Jerry(11#SalHe(6#Tom,9#Jerry))),5#Letty(6#What,8#GEM,9#Superman))", 34},
+        // 参选者ID跟树的生成方式有关：可将树节点按深度优先从0开始编号
+        {"0#Boss(5#SalHe(6#Tom,4#Jerry),5#Letty(6#What,8#GEM,9#Superman))", {33, {2, 3, 5, 6, 7}}},
+        {"0#Boss(11#SalHe(6#Tom,4#Jerry),5#Letty(6#What,8#GEM,9#Superman))", {34, {1, 5, 6, 7}}},
+        {"0#Boss(11#SalHe(6#Tom,4#Jerry(11#SalHe(6#Tom,9#Jerry))),5#Letty(6#What,8#GEM,9#Superman))", {34, {2, 5, 6, 8, 9, 10}}},
     };
 
     for (int i = 0; i < cases.size(); i++)
@@ -221,8 +251,9 @@ TEST_CASE("单位新年聚会人员安排计划")
             int rootId;
             Personnel *p = Personnel::from(cases[i].expression, &nodes, &rootId);
 
-            int actual = arrangeParty(nodes, rootId);
-            CHECK_EQ(cases[i].expected, actual);
+            Answer actual = arrangeParty(nodes, rootId);
+            CHECK_EQ(cases[i].expected.social, actual.social);
+            CHECK_EQ(cases[i].expected.participants, actual.participants);
         }
     }
 }
