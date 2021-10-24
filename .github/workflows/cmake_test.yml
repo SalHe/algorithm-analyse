@@ -1,4 +1,4 @@
-name: CMake
+name: 算法测试
 
 on:
   push:
