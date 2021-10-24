@@ -1,4 +1,4 @@
-name: 算法测试
+name: Test
 
 on:
   push:
