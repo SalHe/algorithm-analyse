@@ -1,5 +1,7 @@
 # 算法设计与分析
 
+![算法测试](https://github.com/SalHe/algorithm-analyse/actions/workflows/cmake_test.yml/badge.svg)
+
 ## 作业
 
 - [第一次作业](./src/hw01#题目)
