@@ -168,14 +168,20 @@ typedef struct
 
 Answer arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
 {
+    /**
+     * @brief DP数组中对节点相关信息的记录
+     * 
+     */
     typedef struct
     {
-        int participating;
-        int noParticipating;
-        int childs;
-        bool consumed;
+        int participating;   // In(n): 与会时可以获得的最大评分和
+        int noParticipating; // NotIn(n): 不与会时可以获得的最大评分和
+        int childs;          // 直接子节点个数
+        bool consumed;       // 是否已被计算
     } PersonScore;
-    vector<PersonScore> scores(nodes.size(), PersonScore{0, 0, 0, false});
+    vector<PersonScore> scores(nodes.size(), PersonScore{0, 0, 0, false}); // DP数组
+
+    // 对节点的直接子节点个数做出统计
     for (int i = 0; i < nodes.size(); i++)
     {
         int pid = nodes[i]->parentId;
@@ -185,8 +191,8 @@ Answer arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
         }
     }
 
-    queue<int> candidates;
-    // 选出叶节点
+    queue<int> candidates; // 可以开始计算评分和的节点（只有当节点的直接子节点没有或计算完成时才可以计算）
+    // 最开始我们需要选出叶节点
     for (int i = 0; i < nodes.size(); i++)
     {
         if (nodes[i]->child == nullptr)
@@ -201,8 +207,8 @@ Answer arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
         candidates.pop();
 
         // 计算候选节点的最大评分情况
-        scores[id].participating = nodes[id]->social; // + 间隔一代的子节点的最大评分(直接子节点不参加的最大评分)
-        scores[id].noParticipating = 0;               // + 所有直接子节点参加或不参加的最大评分
+        scores[id].participating = nodes[id]->social;
+        scores[id].noParticipating = 0;
         int child = nodes[id]->childId;
         while (IS_VALID_ID(child))
         {
@@ -218,7 +224,7 @@ Answer arrangeParty(vector<PersonNode *> &nodes, int rootId = 0)
         if (IS_VALID_ID(pid))
             scores[pid].childs--;
 
-        // 加入下一次的候选节点
+        // 加入下一次的候选节点（也就是考虑那些节点的直接子节点已经计算完毕）
         if (candidates.empty())
         {
             for (int i = 0; i < nodes.size(); i++)
